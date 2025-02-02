@@ -39,7 +39,9 @@ namespace HL7.Services
                         cmd.Parameters.AddWithValue("@Hl7Json", jsonMessage);
                         int insertedId = Convert.ToInt32(cmd.ExecuteScalar());
                         conn.Close();
+                        PublishToRabbitMQ(insertedId, jsonMessage); // Publish to RabbitMQ
                         return insertedId;
+                        
                     }
                 }
             }
@@ -87,12 +89,14 @@ namespace HL7.Services
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
+                channel.ExchangeDeclare(exchange: _rabbitMqOptions.ExhangeName, type: ExchangeType.Direct);
                 channel.QueueDeclare(queue: _rabbitMqOptions.QueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                channel.QueueBind(queue: _rabbitMqOptions.QueueName, exchange: _rabbitMqOptions.ExhangeName, routingKey: _rabbitMqOptions.RoutingName);
                 var properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
                 properties.Headers = new Dictionary<string, object> { { "UniqueId", id } };
                 var body = Encoding.UTF8.GetBytes(messageBody);
-                channel.BasicPublish(exchange: "", routingKey: _rabbitMqOptions.QueueName, basicProperties: properties, body: body);
+                channel.BasicPublish(exchange:_rabbitMqOptions.ExhangeName,routingKey: _rabbitMqOptions.RoutingName,true, basicProperties: properties, body: body);
                 Console.WriteLine($"✅ [RabbitMQ] Sent HL7 Event with ID: {id}");
             }
         }
