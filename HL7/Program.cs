@@ -12,8 +12,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<IInsertHl7DataService, InsertHl7DataService>((provider) => new InsertHl7DataService(configuration));
-//builder.Services.AddTransient<IInsertHl7DataService, InsertHl7DataService>();
+builder.Services.AddTransient<IInsertHl7DataService, JSONDataService>((provider) => new JSONDataService(configuration));
+builder.Services.AddTransient<IInsertHl7DataService, JSONDataService>();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); // 🔹 Register DbContext with SQL Server 
 //builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 

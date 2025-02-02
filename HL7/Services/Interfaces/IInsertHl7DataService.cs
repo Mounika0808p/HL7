@@ -2,6 +2,6 @@
 {
     public interface IInsertHl7DataService
     {
-        int InsertHl7Data(Dictionary<string, string> hl7Data);
+        int SaveHl7JsonToDatabase(string hl7Data);
     }
 }
