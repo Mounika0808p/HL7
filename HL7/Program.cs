@@ -14,7 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IInsertHl7DataService, JSONDataService>((provider) => new JSONDataService(configuration));
 builder.Services.AddTransient<IInsertHl7DataService, JSONDataService>();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); // 🔹 Register DbContext with SQL Server 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); 
 //builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer("Server=DESKTOP-IFQHBC0\\SQLEXPRESS;Database=HL7DB;TrustServerCertificate=True;"));

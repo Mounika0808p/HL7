@@ -16,7 +16,7 @@ namespace HL7.Services
         private readonly RabbitMqOptions _rabbitMqOptions;
         IConfiguration _configuration;
         IConfigurationSection applicationSettings;
-        public JSONDataService(IConfiguration configuration ) // Inject dependencies
+        public JSONDataService(IConfiguration configuration) // Inject dependencies
         {
             _configuration = configuration;
             _rabbitMqOptions = _rabbitMqOptions = configuration.GetSection("RabbitMQ").Get<RabbitMqOptions>();
@@ -28,7 +28,7 @@ namespace HL7.Services
         {
             try
             {
-                // Convert HL7 to JSON
+
                 string jsonMessage = ConvertHl7ToJson(hl7Message);
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
@@ -39,9 +39,9 @@ namespace HL7.Services
                         cmd.Parameters.AddWithValue("@Hl7Json", jsonMessage);
                         int insertedId = Convert.ToInt32(cmd.ExecuteScalar());
                         conn.Close();
-                        PublishToRabbitMQ(insertedId, jsonMessage); // Publish to RabbitMQ
+                        PublishToRabbitMQ(insertedId, jsonMessage);
                         return insertedId;
-                        
+
                     }
                 }
             }
@@ -54,25 +54,34 @@ namespace HL7.Services
 
         private string ConvertHl7ToJson(string hl7Message)
         {
-            var hl7Segments = hl7Message.Split('\r');
-            var hl7Dict = new Dictionary<string, Dictionary<int, string>>();
-            foreach (var segment in hl7Segments)
+            try
             {
-                var parts = segment.Split('|');
-                if (parts.Length > 0)
+                var hl7Segments = hl7Message.Split('\r');
+                var hl7Dict = new Dictionary<string, Dictionary<int, string>>();
+                foreach (var segment in hl7Segments)
                 {
-                    string segmentName = parts[0];
-                    if (!hl7Dict.ContainsKey(segmentName))
+                    var parts = segment.Split('|');
+                    if (parts.Length > 0)
                     {
-                        hl7Dict[segmentName] = new Dictionary<int, string>();
-                    }
-                    for (int i = 1; i < parts.Length; i++)
-                    {
-                        hl7Dict[segmentName][i] = parts[i];
+                        string segmentName = parts[0];
+                        if (!hl7Dict.ContainsKey(segmentName))
+                        {
+                            hl7Dict[segmentName] = new Dictionary<int, string>();
+                        }
+                        for (int i = 1; i < parts.Length; i++)
+                        {
+                            hl7Dict[segmentName][i] = parts[i];
+                        }
                     }
                 }
+
+                return JsonConvert.SerializeObject(hl7Dict, Newtonsoft.Json.Formatting.Indented);
             }
-            return JsonConvert.SerializeObject(hl7Dict, Newtonsoft.Json.Formatting.Indented);
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
 
 
@@ -96,8 +105,8 @@ namespace HL7.Services
                 properties.Persistent = true;
                 properties.Headers = new Dictionary<string, object> { { "UniqueId", id } };
                 var body = Encoding.UTF8.GetBytes(messageBody);
-                channel.BasicPublish(exchange:_rabbitMqOptions.ExhangeName,routingKey: _rabbitMqOptions.RoutingName,true, basicProperties: properties, body: body);
-                Console.WriteLine($"✅ [RabbitMQ] Sent HL7 Event with ID: {id}");
+                channel.BasicPublish(exchange: _rabbitMqOptions.ExhangeName, routingKey: _rabbitMqOptions.RoutingName, true, basicProperties: properties, body: body);
+
             }
         }
 

@@ -10,12 +10,12 @@ namespace HL7.Controllers
     public class Hl7Controller : ControllerBase
     {
         private readonly IInsertHl7DataService _insertHl7DataService;
-        public Hl7Controller(IInsertHl7DataService insertHl7DataService) // Inject service
+        public Hl7Controller(IInsertHl7DataService insertHl7DataService) 
         {
             _insertHl7DataService = insertHl7DataService;
         }
         [HttpPost("parse")]
-        public IActionResult ParseAndStoreHL7([FromBody] string hl7Message)
+        public IActionResult ParseAndStoreHL7(string hl7Message)
         {
             if (string.IsNullOrWhiteSpace(hl7Message))
                 return BadRequest("HL7 message is empty");
@@ -25,3 +25,6 @@ namespace HL7.Controllers
         }
     }
 }
+
+
+
